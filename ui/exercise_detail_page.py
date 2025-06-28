@@ -1,74 +1,8 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 import threading
 import time
-import serial
-
-# --- Serial Setup ---
-PICO_PORT = "COM14"
-BAUD_RATE = 115200
-
-try:
-    ser = serial.Serial(PICO_PORT, BAUD_RATE, timeout=1)
-    time.sleep(2)
-except Exception as e:
-    ser = None
-    print("Serial connection failed:", e)
-
-def send_to_pico(command):
-    if ser and ser.is_open:
-        try:
-            ser.write((command + "\n").encode())
-        except Exception as e:
-            print("Failed to send command:", e)
-
-# --- Tkinter App ---
-class ExoApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("Rehabilitation Exoskeleton")
-        self.geometry("500x400")
-        self.selected_exercise = tk.StringVar()
-        self.selected_reps = tk.IntVar(value=1)
-        self.output_angle = tk.DoubleVar(value=0.0)
-        self.current_reps = tk.IntVar(value=0)
-
-        self.frames = {}
-        for F in (StartPage, ExerciseSelectionPage, ExerciseDetailPage):
-            page_name = F.__name__
-            frame = F(self)
-            self.frames[page_name] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
-
-        self.show_frame("StartPage")
-
-    def show_frame(self, page_name):
-        frame = self.frames[page_name]
-        frame.tkraise()
-
-class StartPage(tk.Frame):
-    def __init__(self, controller):
-        super().__init__(controller)
-        tk.Label(self, text="Rehabilitation Exoskeleton", font=("Arial", 18)).pack(pady=60)
-        tk.Button(self, text="Start", command=lambda: controller.show_frame("ExerciseSelectionPage")).pack(pady=20)
-
-class ExerciseSelectionPage(tk.Frame):
-    def __init__(self, controller):
-        super().__init__(controller)
-        tk.Label(self, text="Choose the exercise", font=("Arial", 16)).pack(pady=20)
-
-        exercises = [("Leg Curls", "Leg Curls improve hamstring strength."),
-                     ("Leg Extensions", "Leg Extensions focus on quadriceps."),
-                     ("Cycling", "Cycling boosts overall knee mobility.")]
-
-        for name, desc in exercises:
-            tk.Button(self, text=name, width=20,
-                      command=lambda n=name, d=desc: self.select_exercise(controller, n, d)).pack(pady=5)
-
-    def select_exercise(self, controller, name, desc):
-        controller.selected_exercise.set(name)
-        controller.frames["ExerciseDetailPage"].set_description(desc)
-        controller.show_frame("ExerciseDetailPage")
+from service.serial_comm import send_to_pico
 
 class ExerciseDetailPage(tk.Frame):
     def __init__(self, controller):
@@ -105,7 +39,7 @@ class ExerciseDetailPage(tk.Frame):
 
         self.continue_btn = tk.Button(self, text="Continue", command=self.reset_for_next_round)
         self.continue_btn.pack(pady=10)
-        self.continue_btn.pack_forget()  # initially hidden
+        self.continue_btn.pack_forget()
 
     def set_description(self, desc):
         self.description.config(text=desc)
@@ -119,7 +53,7 @@ class ExerciseDetailPage(tk.Frame):
 
     def start_initialization(self):
         self.init_button.config(state='disabled')
-        send_to_pico("ON")  # LED ON when initialization starts
+        send_to_pico("ON")
         threading.Thread(target=self._simulate_initialization).start()
 
     def _simulate_initialization(self):
@@ -149,8 +83,4 @@ class ExerciseDetailPage(tk.Frame):
         self.progress["value"] = 0
         self.init_button.config(state='normal')
         self.continue_btn.pack_forget()
-        send_to_pico("OFF")  # LED OFF after round
-
-if __name__ == "__main__":
-    app = ExoApp()
-    app.mainloop()
+        send_to_pico("OFF")
