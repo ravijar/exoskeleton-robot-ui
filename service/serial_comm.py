@@ -17,3 +17,11 @@ def send_to_pico(command):
             ser.write((command + "\n").encode())
         except Exception as e:
             print("Failed to send command:", e)
+            
+def read_response():
+    if ser and ser.is_open:
+        try:
+            return ser.readline().decode().strip()
+        except Exception as e:
+            print("Failed to read:", e)
+    return None

@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import threading
 import time
-from service.serial_comm import send_to_pico
+from service.serial_comm import send_to_pico, read_response
 
 class ExerciseDetailPage(tk.Frame):
     def __init__(self, controller):
@@ -34,6 +34,9 @@ class ExerciseDetailPage(tk.Frame):
         self.angle_label = tk.Label(self, text="")
         self.angle_label.pack()
 
+        self.mpu_label = tk.Label(self, text="MPU Data: Not available", font=("Arial", 10))
+        self.mpu_label.pack(pady=5)
+
         self.reps_label = tk.Label(self, text="Current Reps: 0", font=("Arial", 12))
         self.reps_label.pack(pady=10)
 
@@ -60,9 +63,26 @@ class ExerciseDetailPage(tk.Frame):
         for i in range(101):
             time.sleep(0.02)
             self.progress["value"] = i
+
+        # Request MPU6050 data
+        send_to_pico("READ")
+        time.sleep(0.1)
+        mpu_data = read_response()
+
         self.tick_label.config(text="✓")
         self.controller.output_angle.set(round(45 + 10 * time.time() % 5, 2))
         self.angle_label.config(text=f"Output Angle: {self.controller.output_angle.get()}°")
+        
+        # Display MPU data
+        if mpu_data:
+            try:
+                ax, ay, az, gx, gy, gz = map(float, mpu_data.split(","))
+                self.mpu_label.config(text=f"ACC: {ax:.2f}, {ay:.2f}, {az:.2f} | GYRO: {gx:.2f}, {gy:.2f}, {gz:.2f}")
+            except:
+                self.mpu_label.config(text="MPU Data: Error parsing")
+        else:
+            self.mpu_label.config(text="MPU Data: No response")
+
         self.controller.current_reps.set(1)
         self.update_reps_display()
         self.check_reps()
