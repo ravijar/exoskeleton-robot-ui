@@ -5,7 +5,7 @@ import time
 
 
 #read the following inputs from the board
-curr_angle=62
+encorder_curr_angle=62
 number_of_reps=6
 
 
@@ -15,6 +15,32 @@ ds_curl_extension = pd.read_csv('../data/generalized_curl_extension.csv')
 a_matrices_path = '../data/A_matrices.db'
 
 last_states=[60.90983284206268, 61.12161056629257, 61.332797560605094, 61.54373428281216, 61.75394691218596]
+initial_encoder_value=12.5
+
+def Encoder_angle_initialization(curr_encoder_value):
+    initial_encoder_value=curr_encoder_value
+
+def curr_angle(curr_encoder_value):
+    theta=20 #initialize these two values pakoo
+    pulse=100 #initialize these two values pakoo
+    calculated_current_angle=(curr_encoder_value-initial_encoder_value)*(theta/pulse)+155
+
+def exersice_loop(encorder_curr_angle,direction):
+
+    get_state_matrix_A_and_curr_angle=assign_state(encorder_curr_angle,direction)
+
+    state_matrix_A=get_state_matrix_A_and_curr_angle[0]
+    
+    theta_now = get_state_matrix_A_and_curr_angle[1]
+
+    theta_prev = last_states[-1]
+    
+    state_vector_X = build_state_vector(theta_now, theta_prev)
+    
+    estimated_next_angle=compute_next_state(state_matrix_A, state_vector_X)[0]
+    update_last_states(estimated_next_angle)
+    
+    return estimated_next_angle
 
 def update_last_states(new_theta, max_size=5):
    
@@ -100,8 +126,6 @@ def direction(past_angles):
     else:
         return 0
 
-    return value
-
 def assign_state(state,dir):
     if dir>0:
         result = get_lower_A_matrix(state, "curl_extension")
@@ -117,59 +141,32 @@ def assign_state(state,dir):
 
 if __name__ == "__main__":
     for i in range(0,number_of_reps):
-        curr_angle=62
+        encorder_curr_angle=62
         while True:
             if len(last_states)<=5:
                 direction=-1
-
             else:
-                direction=direction(last_states)
+                direction(last_states)
             
             if direction!=0:
-                start_time = time.time()
-                get_state_matrix_A_and_curr_angle=assign_state(curr_angle,direction)
-                state_matrix_A=get_state_matrix_A_and_curr_angle[0]
-                
-                theta_now = get_state_matrix_A_and_curr_angle[1]
-
-                theta_prev = last_states[-1]
-                
-                state_vector_X = build_state_vector(theta_now, theta_prev)
-                
-                estimated_next_angle=compute_next_state(state_matrix_A, state_vector_X)[0]
-                update_last_states(estimated_next_angle)
-                end_time = time.time()
-                
-                execution_time = end_time - start_time
-                #print(f"Execution time: {execution_time:.6f} seconds")
-                print(estimated_next_angle)
+                exersice_loop(encorder_curr_angle,direction)
             else:
                 break
         
         # sleeping time between the phase change
 
         time.sleep(0.8)
-            
-        while True:
-            direction=direction(last_states)
-            if direction!=0:
-                start_time = time.time()
-                get_state_matrix_A_and_curr_angle=assign_state(curr_angle,direction)
-                state_matrix_A=get_state_matrix_A_and_curr_angle[0]
-                
-                theta_now = get_state_matrix_A_and_curr_angle[1]
+        
+        last_states=[]
 
-                theta_prev = last_states[-1]
-                
-                state_vector_X = build_state_vector(theta_now, theta_prev)
-                
-                estimated_next_angle=compute_next_state(state_matrix_A, state_vector_X)[0]
-                update_last_states(estimated_next_angle)
-                end_time = time.time()
-                
-                execution_time = end_time - start_time
-                #print(f"Execution time: {execution_time:.6f} seconds")
-                print(estimated_next_angle)
+        while True:
+            if len(last_states)<=5:
+                direction=1
+            else:
+                direction(last_states)
+            
+            if direction!=0:
+                exersice_loop(encorder_curr_angle,direction)
             else:
                 break
 
