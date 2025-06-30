@@ -1,5 +1,5 @@
 import tkinter as tk
-from service.arduino_comm import send_to_arduino, read_xyz_loop
+from service.arduino_comm import send_to_arduino, read_response_async
 from ui.back_button_mixin import BackButtonMixin
 
 class ArduinoDataPage(tk.Frame, BackButtonMixin):
@@ -7,26 +7,20 @@ class ArduinoDataPage(tk.Frame, BackButtonMixin):
         super().__init__(controller)
         self.controller = controller
 
-        tk.Label(self, text="Arduino Sensor Data", font=("Arial", 16)).pack(pady=10)
-        self.xyz_label = tk.Label(self, text="X: -- Y: -- Z: --", font=("Arial", 14))
-        self.xyz_label.pack(pady=10)
+        tk.Label(self, text="Read Initial Encoder Value", font=("Arial", 16)).pack(pady=20)
 
-        self.led_button = tk.Button(self, text="Turn ON LED", command=self.toggle_led)
-        self.led_button.pack(pady=10)
-        self.led_on = False
+        self.encoder_label = tk.Label(self, text="INIT_ENCODER: --", font=("Arial", 14))
+        self.encoder_label.pack(pady=10)
+
+        self.read_btn = tk.Button(self, text="Get Init Encoder", command=self.get_encoder_value)
+        self.read_btn.pack(pady=10)
 
         self.add_back_button(self, controller)
 
-        read_xyz_loop(self.update_xyz_display)
+    def get_encoder_value(self):
+        self.encoder_label.config(text="INIT_ENCODER: ⏳")
+        send_to_arduino("GET_INIT_ENCODER")
+        read_response_async(self.handle_response, expected_prefix="INIT_ENCODER")
 
-    def update_xyz_display(self, x, y, z):
-        self.xyz_label.config(text=f"X: {x:.2f}, Y: {y:.2f}, Z: {z:.2f}")
-
-    def toggle_led(self):
-        self.led_on = not self.led_on
-        if self.led_on:
-            send_to_arduino("LED_ON")
-            self.led_button.config(text="Turn OFF LED")
-        else:
-            send_to_arduino("LED_OFF")
-            self.led_button.config(text="Turn ON LED")
+    def handle_response(self, value):
+        self.encoder_label.config(text=f"INIT_ENCODER: {value}")

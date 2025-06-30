@@ -6,12 +6,10 @@ import time
 arduino_ser = None  # Global serial object
 
 def list_serial_ports():
-    """Return a list of available COM ports."""
     ports = serial.tools.list_ports.comports()
     return [port.device for port in ports]
 
 def connect_to_arduino(port, baud=9600):
-    """Connect to the specified Arduino port."""
     global arduino_ser
     try:
         arduino_ser = serial.Serial(port, baud, timeout=1)
@@ -29,18 +27,22 @@ def send_to_arduino(command):
         except Exception as e:
             print("Failed to send to Arduino:", e)
 
-def read_xyz_loop(callback):
+def read_response_async(callback, expected_prefix):
+    """Reads the next matching message that starts with the expected prefix."""
     def loop():
-        while True:
+        start_time = time.time()
+        timeout = 3  # seconds
+        while time.time() - start_time < timeout:
             if arduino_ser and arduino_ser.in_waiting:
                 try:
                     line = arduino_ser.readline().decode().strip()
-                    if line:
-                        parts = line.split(",")
-                        if len(parts) == 3:
-                            x, y, z = map(float, parts)
-                            callback(x, y, z)
+                    if line.startswith(expected_prefix + ":"):
+                        payload = line.split(":", 1)[1]
+                        callback(payload)
+                        return
                 except:
                     pass
             time.sleep(0.1)
+        callback("❌ Timeout")
+
     threading.Thread(target=loop, daemon=True).start()

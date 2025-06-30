@@ -1,26 +1,31 @@
 void setup() {
-  Serial.begin(9600);     // USB serial to PC
-  pinMode(13, OUTPUT);    // Built-in LED
-  randomSeed(analogRead(0)); // Initialize random seed
+  Serial.begin(9600);
+  pinMode(13, OUTPUT);
+  randomSeed(analogRead(0));
 }
 
 void loop() {
-  // Generate and send random x, y, z values
-  float x = random(0, 1000) / 10.0;  // e.g., 0.0 to 99.9
-  float y = random(0, 1000) / 10.0;
-  float z = random(0, 1000) / 10.0;
+  handleSerialCommand();  // continuously check for new commands
+  delay(50);              // small delay to ease serial processing
+}
 
-  Serial.print(x); Serial.print(",");
-  Serial.print(y); Serial.print(",");
-  Serial.println(z);
-
-  delay(100);  // Send every 100 ms
-
-  // Handle incoming LED command
+// --- Serial Command Handler ---
+void handleSerialCommand() {
   if (Serial.available()) {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
-    if (cmd == "LED_ON") digitalWrite(13, HIGH);
-    else if (cmd == "LED_OFF") digitalWrite(13, LOW);
+
+    if (cmd == "GET_INIT_ENCODER") {
+      int enc = getEncoderValue();
+      Serial.print("INIT_ENCODER:");
+      Serial.println(enc);
+    } else {
+      Serial.println("UNKNOWN_COMMAND");
+    }
   }
+}
+
+// --- Simulate Encoder Value ---
+int getEncoderValue() {
+  return random(0, 30001);  // 0–30000
 }
