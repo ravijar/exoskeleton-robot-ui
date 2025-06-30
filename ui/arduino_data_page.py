@@ -10,7 +10,7 @@ class ArduinoDataPage(tk.Frame, BackButtonMixin):
 
         tk.Label(self, text="Data Communication", font=("Arial", 16)).pack(pady=20)
 
-        self.curr_angle_label = tk.Label(self, text="Current Angle: --", font=("Arial", 12))
+        self.curr_angle_label = tk.Label(self, text=f"Current Angle: {get_curr_angle():.2f}", font=("Arial", 12))
         self.curr_angle_label.pack(pady=10)
 
         self.read_btn = tk.Button(self, text="Calculate Current Angle", command=self.update_current_angle)
@@ -28,13 +28,17 @@ class ArduinoDataPage(tk.Frame, BackButtonMixin):
             try:
                 value = int(value_str)
                 callback(value)
-            except ValueError:
+            except (ValueError, TypeError):
                 print("Invalid encoder value:", value_str)
+                callback(None)
 
         read_response_async(handle_response, expected_prefix="ENCODER_VALUE")
         
 
     def update_current_angle(self):
-        self.get_encoder_value(set_curr_angle)
-        self.curr_angle_label.config(text=f"Current Angle: {get_curr_angle()}")
+        def after_angle_computed(angle):
+            self.curr_angle_label.config(text=f"Current Angle: {angle:.2f}°")
+
+        self.get_encoder_value(lambda enc_val: set_curr_angle(enc_val, after_angle_computed))
+
 

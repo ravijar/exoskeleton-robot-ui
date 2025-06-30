@@ -25,11 +25,15 @@ def set_initial_encoder_value(encoder_value):
     global initial_encoder_value
     initial_encoder_value=encoder_value
 
-def set_curr_angle(curr_encoder_value):
+def set_curr_angle(curr_encoder_value, callback):
     global curr_angle
-    theta=20 #initialize these two values pakoo
-    pulse=100 #initialize these two values pakoo
-    curr_angle=(curr_encoder_value-initial_encoder_value)*(theta/pulse)+155
+    theta = 20    # initialize values
+    pulse = 100   # initialize values
+
+    curr_angle = (curr_encoder_value - initial_encoder_value) * (theta / pulse) + 155
+
+    if callback:
+        callback(curr_angle)
 
 def get_curr_angle():
     global curr_angle
