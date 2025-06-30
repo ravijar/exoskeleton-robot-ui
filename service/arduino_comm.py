@@ -1,16 +1,26 @@
 import serial
+import serial.tools.list_ports
 import threading
 import time
 
-ARDUINO_PORT = "COM9"   # Update with actual COM port
-BAUD_RATE = 9600
+arduino_ser = None  # Global serial object
 
-try:
-    arduino_ser = serial.Serial(ARDUINO_PORT, BAUD_RATE, timeout=1)
-    time.sleep(2)
-except Exception as e:
-    arduino_ser = None
-    print("Arduino connection failed:", e)
+def list_serial_ports():
+    """Return a list of available COM ports."""
+    ports = serial.tools.list_ports.comports()
+    return [port.device for port in ports]
+
+def connect_to_arduino(port, baud=9600):
+    """Connect to the specified Arduino port."""
+    global arduino_ser
+    try:
+        arduino_ser = serial.Serial(port, baud, timeout=1)
+        time.sleep(2)
+        return True
+    except Exception as e:
+        print("Failed to connect to Arduino:", e)
+        arduino_ser = None
+        return False
 
 def send_to_arduino(command):
     if arduino_ser and arduino_ser.is_open:

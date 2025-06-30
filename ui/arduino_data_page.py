@@ -1,7 +1,8 @@
 import tkinter as tk
 from service.arduino_comm import send_to_arduino, read_xyz_loop
+from ui.back_button_mixin import BackButtonMixin
 
-class ArduinoDataPage(tk.Frame):
+class ArduinoDataPage(tk.Frame, BackButtonMixin):
     def __init__(self, controller):
         super().__init__(controller)
         self.controller = controller
@@ -13,6 +14,8 @@ class ArduinoDataPage(tk.Frame):
         self.led_button = tk.Button(self, text="Turn ON LED", command=self.toggle_led)
         self.led_button.pack(pady=10)
         self.led_on = False
+
+        self.add_back_button(self, controller)
 
         read_xyz_loop(self.update_xyz_display)
 

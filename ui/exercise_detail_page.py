@@ -3,8 +3,9 @@ from tkinter import ttk
 import threading
 import time
 from service.serial_comm import send_to_pico, read_response
+from ui.back_button_mixin import BackButtonMixin
 
-class ExerciseDetailPage(tk.Frame):
+class ExerciseDetailPage(tk.Frame, BackButtonMixin):
     def __init__(self, controller):
         super().__init__(controller)
         self.controller = controller
@@ -43,6 +44,8 @@ class ExerciseDetailPage(tk.Frame):
         self.continue_btn = tk.Button(self, text="Continue", command=self.reset_for_next_round)
         self.continue_btn.pack(pady=10)
         self.continue_btn.pack_forget()
+
+        self.add_back_button(self, controller)
 
     def set_description(self, desc):
         self.description.config(text=desc)
