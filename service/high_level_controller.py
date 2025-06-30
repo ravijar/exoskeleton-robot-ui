@@ -39,7 +39,7 @@ def get_curr_angle():
     global curr_angle
     return curr_angle
 
-def exersice_loop(encorder_curr_angle,direction):
+def exercise_loop(encorder_curr_angle,direction):
 
     get_state_matrix_A_and_curr_angle=assign_state(encorder_curr_angle,direction)
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
                 direction(last_states)
             
             if direction!=0:
-                exersice_loop(encorder_curr_angle,direction)
+                exercise_loop(encorder_curr_angle,direction)
             else:
                 break
         
@@ -180,7 +180,7 @@ if __name__ == "__main__":
                 direction(last_states)
             
             if direction!=0:
-                exersice_loop(encorder_curr_angle,direction)
+                exercise_loop(encorder_curr_angle,direction)
             else:
                 break
 
