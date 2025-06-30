@@ -15,9 +15,9 @@ void handleSerialCommand() {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
 
-    if (cmd == "GET_INIT_ENCODER") {
+    if (cmd == "GET_ENCODER_VALUE") {
       int enc = getEncoderValue();
-      Serial.print("INIT_ENCODER:");
+      Serial.print("ENCODER_VALUE:");
       Serial.println(enc);
     } else {
       Serial.println("UNKNOWN_COMMAND");

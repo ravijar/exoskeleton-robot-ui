@@ -5,6 +5,7 @@ import time
 
 
 #read the following inputs from the board
+initial_encoder_value=0
 encorder_curr_angle=62
 number_of_reps=6
 
@@ -17,13 +18,13 @@ a_matrices_path = '../data/A_matrices.db'
 last_states=[60.90983284206268, 61.12161056629257, 61.332797560605094, 61.54373428281216, 61.75394691218596]
 initial_encoder_value=12.5
 
-def Encoder_angle_initialization(curr_encoder_value):
-    initial_encoder_value=curr_encoder_value
+def set_initial_encoder_value(encoder_value):
+    initial_encoder_value=encoder_value
 
-def curr_angle(curr_encoder_value):
+def calculate_curr_angle(curr_encoder_value):
     theta=20 #initialize these two values pakoo
     pulse=100 #initialize these two values pakoo
-    calculated_current_angle=(curr_encoder_value-initial_encoder_value)*(theta/pulse)+155
+    return (curr_encoder_value-initial_encoder_value)*(theta/pulse)+155
 
 def exersice_loop(encorder_curr_angle,direction):
 
