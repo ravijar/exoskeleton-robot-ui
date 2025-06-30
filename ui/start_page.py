@@ -21,28 +21,35 @@ class StartPage(tk.Frame):
         settings_frame = tk.Frame(self.container, bg="white", bd=2, relief="groove")
         settings_frame.pack(pady=(0, 30), ipadx=20, ipady=20)
 
+        # Title centered above the form
         tk.Label(settings_frame, text="Arduino Configuration", font=("Helvetica", 14, "bold"), bg="white")\
-            .grid(row=0, column=0, columnspan=3, pady=(10, 15))
+            .pack(pady=(10, 15))
 
-        # Dropdown + Refresh button in same row
-        tk.Label(settings_frame, text="Select Arduino Port:", bg="white", font=("Helvetica", 11))\
-            .grid(row=1, column=0, sticky="e", padx=(10, 5), pady=5)
+        # Inner frame to center form content
+        form_frame = tk.Frame(settings_frame, bg="white")
+        form_frame.pack()
 
+        # Port label
+        tk.Label(form_frame, text="Select Arduino Port:", bg="white", font=("Helvetica", 11))\
+            .grid(row=0, column=0, sticky="e", padx=(10, 5), pady=5)
+
+        # Port dropdown
         self.port_var = tk.StringVar()
-        self.port_dropdown = ttk.Combobox(settings_frame, textvariable=self.port_var, state="readonly", width=15)
-        self.port_dropdown.grid(row=1, column=1, sticky="w", padx=(0, 5), pady=5)
+        self.port_dropdown = ttk.Combobox(form_frame, textvariable=self.port_var, state="readonly", width=15)
+        self.port_dropdown.grid(row=0, column=1, sticky="w", padx=(0, 5), pady=5)
 
-        refresh_btn = tk.Button(settings_frame, text="⟳", command=self.refresh_ports_async,
+        # Refresh button next to dropdown
+        refresh_btn = tk.Button(form_frame, text="⟳", command=self.refresh_ports_async,
                                 font=("Helvetica", 11), bg="white", relief="flat", bd=0)
-        refresh_btn.grid(row=1, column=2, sticky="w", padx=(0, 10), pady=5)
+        refresh_btn.grid(row=0, column=2, sticky="w", padx=(0, 10), pady=5)
 
-        # Status & spinner
+        # Status label centered below
         self.status_label = tk.Label(settings_frame, text="", fg="green", bg="white", font=("Helvetica", 10, "italic"))
-        self.status_label.grid(row=2, column=0, columnspan=3, pady=5)
+        self.status_label.pack(pady=5)
 
-        # Connect button
-        connect_btn = ttk.Button(settings_frame, text="Connect to Arduino", command=self.connect_async)
-        connect_btn.grid(row=3, column=0, columnspan=3, pady=(10, 0))
+        # Connect button centered below
+        connect_btn = ttk.Button(settings_frame, text="Connect", command=self.connect_async)
+        connect_btn.pack(pady=10)
 
         # Arduino Data Page
         arduino_page_btn = ttk.Button(self.container, text="Arduino Data Page",
@@ -50,19 +57,9 @@ class StartPage(tk.Frame):
         arduino_page_btn.pack(pady=10)
 
         # Start Button
-        self.start_btn = tk.Button(self.container, text="Start",
-                                   font=("Helvetica", 14, "bold"),
-                                   bg="#3399FF", fg="white",
-                                   activebackground="#66B3FF",
-                                   relief="flat",
-                                   bd=0,
-                                   height=2, width=20,
+        self.start_btn = ttk.Button(self.container, text="Start",
                                    command=lambda: controller.show_frame("ExerciseSelectionPage"))
-        self.start_btn.pack(pady=30)
-
-        self.start_btn.configure(highlightthickness=0)
-        self.start_btn.bind("<Enter>", lambda e: self.start_btn.config(bg="#66B3FF"))
-        self.start_btn.bind("<Leave>", lambda e: self.start_btn.config(bg="#3399FF"))
+        self.start_btn.pack(pady=10)
 
         self.refresh_ports_async()
 
