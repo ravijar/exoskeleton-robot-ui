@@ -2,29 +2,38 @@ import pandas as pd
 import sqlite3
 import numpy as np
 import time
+import os
 
 
 #read the following inputs from the board
 initial_encoder_value=0
-encorder_curr_angle=62
+curr_angle=0
 number_of_reps=6
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CURL_FLEXION_CSV_PATH = os.path.join(BASE_DIR, 'data', 'generalized_curl_flexion.csv')
+CURL_EXTENSION_CSV_PATH = os.path.join(BASE_DIR, 'data', 'generalized_curl_extension.csv')
+A_MATRICES_PATH = os.path.join(BASE_DIR, 'data', 'A_matrices.db')
 
 # Read the first sheet
-ds_curl_flexion = pd.read_csv('../data/generalized_curl_flexion.csv')
-ds_curl_extension = pd.read_csv('../data/generalized_curl_extension.csv')
-a_matrices_path = '../data/A_matrices.db'
+ds_curl_flexion = pd.read_csv(CURL_FLEXION_CSV_PATH)
+ds_curl_extension = pd.read_csv(CURL_EXTENSION_CSV_PATH)
 
 last_states=[60.90983284206268, 61.12161056629257, 61.332797560605094, 61.54373428281216, 61.75394691218596]
-initial_encoder_value=12.5
 
 def set_initial_encoder_value(encoder_value):
+    global initial_encoder_value
     initial_encoder_value=encoder_value
 
-def calculate_curr_angle(curr_encoder_value):
+def set_curr_angle(curr_encoder_value):
+    global curr_angle
     theta=20 #initialize these two values pakoo
     pulse=100 #initialize these two values pakoo
-    return (curr_encoder_value-initial_encoder_value)*(theta/pulse)+155
+    curr_angle=(curr_encoder_value-initial_encoder_value)*(theta/pulse)+155
+
+def get_curr_angle():
+    global curr_angle
+    return curr_angle
 
 def exersice_loop(encorder_curr_angle,direction):
 
@@ -64,7 +73,7 @@ def compute_next_state(A_matrix, current_state):
 
 def get_lower_A_matrix(given_theta, phase):
     # Step 1: Connect and load only theta + index
-    conn = sqlite3.connect(a_matrices_path)
+    conn = sqlite3.connect(A_MATRICES_PATH)
     df = pd.read_sql_query(
         "SELECT step_index, theta FROM full_theta_with_A WHERE dataset_name = ? ORDER BY theta ASC",
         conn, params=(phase,)

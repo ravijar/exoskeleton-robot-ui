@@ -35,6 +35,8 @@ class ExoApp(tk.Tk):
     def show_frame(self, page_name):
         frame = self.frames[page_name]
         frame.tkraise()
+        if hasattr(frame, "on_show"):
+            frame.on_show()
 
 if __name__ == "__main__":
     app = ExoApp()
