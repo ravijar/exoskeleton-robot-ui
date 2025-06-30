@@ -2,6 +2,7 @@ import tkinter as tk
 from ui.start_page import StartPage
 from ui.exercise_selection_page import ExerciseSelectionPage
 from ui.exercise_detail_page import ExerciseDetailPage
+from ui.arduino_data_page import ArduinoDataPage
 
 class ExoApp(tk.Tk):
     def __init__(self):
@@ -14,7 +15,7 @@ class ExoApp(tk.Tk):
         self.current_reps = tk.IntVar(value=0)
 
         self.frames = {}
-        for F in (StartPage, ExerciseSelectionPage, ExerciseDetailPage):
+        for F in (StartPage, ExerciseSelectionPage, ExerciseDetailPage, ArduinoDataPage):
             page_name = F.__name__
             frame = F(self)
             self.frames[page_name] = frame
