@@ -9,7 +9,7 @@ _db_initialized = False
 
 initial_encoder_value=0
 curr_angle=0
-number_of_reps=0
+number_of_reps=1
 
 BASE_DIR = ""
 A_MATRICES_PATH = ""
@@ -48,7 +48,7 @@ def set_initial_encoder_value(encoder_value):
     global initial_encoder_value
     initial_encoder_value=encoder_value
 
-def update_curr_angle(callback):
+def update_curr_angle(callback=None):
     get_encoder_value(lambda enc_val: set_curr_angle(enc_val, callback))
 
 def set_curr_angle(curr_encoder_value, callback):
@@ -64,6 +64,10 @@ def set_curr_angle(curr_encoder_value, callback):
 def get_curr_angle():
     global curr_angle
     return curr_angle
+
+def set_number_of_reps(reps):
+    global number_of_reps
+    number_of_reps=reps
 
 def exercise_loop(encorder_curr_angle,direction):
 
@@ -90,9 +94,11 @@ def update_last_states(new_theta, max_size=5):
     last_states.append(new_theta)
 
 def build_state_vector(theta_now, theta_prev):
-
     dt = 0.01  # Fixed time step
-    theta_dot = (theta_now - theta_prev) / dt
+    theta_now = float(theta_now)
+    theta_prev = float(theta_prev)
+
+    theta_dot = float((theta_now - theta_prev) / dt)
     return np.array([[theta_now], [theta_dot]])
 
 
@@ -125,11 +131,11 @@ def get_lower_A_matrix(given_theta, phase):
 
     # Step 3: Handle out-of-range → return 2x2 zero matrix
     if lower_index is None:
-        db_conn.close()
         return {
             "matched_theta": given_theta,
             "step_index": -1,
-            "A_matrix": np.zeros((2, 2))
+            "A_matrix": np.zeros((2, 2)),
+            "current_theta": given_theta # meka wenas karanna!!!!!!!!!!!  
         }
 
     # Step 4: Fetch corresponding 2x2 A matrix
@@ -141,7 +147,6 @@ def get_lower_A_matrix(given_theta, phase):
     """
     cursor.execute(A_query, (phase, lower_index))
     row = cursor.fetchone()
-    db_conn.close()
 
     theta_value = row[0]
     A_matrix = np.array(row[1:]).reshape(2, 2)
@@ -181,8 +186,10 @@ def assign_state(state,dir):
 
 def run_exercise():
     global number_of_reps
+    global curr_angle
+    global last_states
     for i in range(0,number_of_reps):
-        encorder_curr_angle=62
+        update_curr_angle()
         while True:
             if len(last_states)<=5:
                 direction=-1
@@ -190,7 +197,7 @@ def run_exercise():
                 direction(last_states)
             
             if direction!=0:
-                exercise_loop(encorder_curr_angle,direction)
+                exercise_loop(curr_angle,direction)
             else:
                 break
         
@@ -207,7 +214,7 @@ def run_exercise():
                 direction(last_states)
             
             if direction!=0:
-                exercise_loop(encorder_curr_angle,direction)
+                exercise_loop(curr_angle,direction)
             else:
                 break
 
