@@ -3,27 +3,53 @@ import sqlite3
 import numpy as np
 import time
 import os
+from service.arduino_comm import get_encoder_value
 
+_db_initialized = False
 
-#read the following inputs from the board
 initial_encoder_value=0
 curr_angle=0
-number_of_reps=6
+number_of_reps=0
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CURL_FLEXION_CSV_PATH = os.path.join(BASE_DIR, 'data', 'generalized_curl_flexion.csv')
-CURL_EXTENSION_CSV_PATH = os.path.join(BASE_DIR, 'data', 'generalized_curl_extension.csv')
-A_MATRICES_PATH = os.path.join(BASE_DIR, 'data', 'A_matrices.db')
+BASE_DIR = ""
+A_MATRICES_PATH = ""
 
-# Read the first sheet
-ds_curl_flexion = pd.read_csv(CURL_FLEXION_CSV_PATH)
-ds_curl_extension = pd.read_csv(CURL_EXTENSION_CSV_PATH)
+db_conn = None
 
 last_states=[60.90983284206268, 61.12161056629257, 61.332797560605094, 61.54373428281216, 61.75394691218596]
+
+def init_db():
+    global _db_initialized
+    if not _db_initialized:
+        global BASE_DIR
+        global A_MATRICES_PATH
+        global db_conn
+
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        A_MATRICES_PATH = os.path.join(BASE_DIR, 'data', 'A_matrices.db')
+
+        db_conn = sqlite3.connect(A_MATRICES_PATH)
+
+        _db_initialized = True
+
+def init_enc_value():
+    global initial_encoder_value
+    get_encoder_value(set_initial_encoder_value)
+
+
+def ensure_db(func):
+    def wrapper(*args, **kwargs):
+        init_db()
+        return func(*args, **kwargs)
+    return wrapper
+
 
 def set_initial_encoder_value(encoder_value):
     global initial_encoder_value
     initial_encoder_value=encoder_value
+
+def update_curr_angle(callback):
+    get_encoder_value(lambda enc_val: set_curr_angle(enc_val, callback))
 
 def set_curr_angle(curr_encoder_value, callback):
     global curr_angle
@@ -75,12 +101,13 @@ def compute_next_state(A_matrix, current_state):
     return A_matrix @ current_state
 
 
+@ensure_db
 def get_lower_A_matrix(given_theta, phase):
+    global db_conn
     # Step 1: Connect and load only theta + index
-    conn = sqlite3.connect(A_MATRICES_PATH)
     df = pd.read_sql_query(
         "SELECT step_index, theta FROM full_theta_with_A WHERE dataset_name = ? ORDER BY theta ASC",
-        conn, params=(phase,)
+        db_conn, params=(phase,)
     )
 
     # Step 2: Find bounds
@@ -94,11 +121,11 @@ def get_lower_A_matrix(given_theta, phase):
             else:
                 lower_index=int(df.iloc[i]['step_index'])
             break
-    cursor = conn.cursor()
+    cursor = db_conn.cursor()
 
     # Step 3: Handle out-of-range → return 2x2 zero matrix
     if lower_index is None:
-        conn.close()
+        db_conn.close()
         return {
             "matched_theta": given_theta,
             "step_index": -1,
@@ -114,7 +141,7 @@ def get_lower_A_matrix(given_theta, phase):
     """
     cursor.execute(A_query, (phase, lower_index))
     row = cursor.fetchone()
-    conn.close()
+    db_conn.close()
 
     theta_value = row[0]
     A_matrix = np.array(row[1:]).reshape(2, 2)
@@ -152,8 +179,8 @@ def assign_state(state,dir):
         pass
 
 
-
-if __name__ == "__main__":
+def run_exercise():
+    global number_of_reps
     for i in range(0,number_of_reps):
         encorder_curr_angle=62
         while True:

@@ -51,3 +51,16 @@ def read_response_async(callback, expected_prefix):
         callback(None)
 
     threading.Thread(target=loop, daemon=True).start()
+
+def get_encoder_value(callback):
+        send_to_arduino("GET_ENCODER_VALUE")
+
+        def handle_response(value_str):
+            try:
+                value = int(value_str)
+                callback(value)
+            except (ValueError, TypeError):
+                print("Invalid encoder value:", value_str)
+                callback(None)
+
+        read_response_async(handle_response, expected_prefix="ENCODER_VALUE")

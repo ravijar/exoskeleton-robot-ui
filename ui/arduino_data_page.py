@@ -1,7 +1,6 @@
 import tkinter as tk
-from service.arduino_comm import send_to_arduino, read_response_async
 from ui.back_button_mixin import BackButtonMixin
-from service.high_level_controller import set_initial_encoder_value, set_curr_angle, get_curr_angle
+from service.high_level_controller import init_enc_value, get_curr_angle, update_curr_angle
 
 class ArduinoDataPage(tk.Frame, BackButtonMixin):
     def __init__(self, controller):
@@ -13,32 +12,16 @@ class ArduinoDataPage(tk.Frame, BackButtonMixin):
         self.curr_angle_label = tk.Label(self, text=f"Current Angle: {get_curr_angle():.2f}", font=("Arial", 12))
         self.curr_angle_label.pack(pady=10)
 
-        self.read_btn = tk.Button(self, text="Calculate Current Angle", command=self.update_current_angle)
+        self.read_btn = tk.Button(self, text="Calculate Current Angle", command=self.update_ui)
         self.read_btn.pack(pady=10)
 
         self.add_back_button(self, controller)
 
     def on_show(self):
-        self.get_encoder_value(set_initial_encoder_value)
-
-    def get_encoder_value(self, callback):
-        send_to_arduino("GET_ENCODER_VALUE")
-
-        def handle_response(value_str):
-            try:
-                value = int(value_str)
-                callback(value)
-            except (ValueError, TypeError):
-                print("Invalid encoder value:", value_str)
-                callback(None)
-
-        read_response_async(handle_response, expected_prefix="ENCODER_VALUE")
+        init_enc_value()
         
 
-    def update_current_angle(self):
-        def after_angle_computed(angle):
-            self.curr_angle_label.config(text=f"Current Angle: {angle:.2f}°")
-
-        self.get_encoder_value(lambda enc_val: set_curr_angle(enc_val, after_angle_computed))
+    def update_ui(self):
+        update_curr_angle(lambda angle: self.curr_angle_label.config(text=f"Current Angle: {angle:.2f}°"))
 
 
