@@ -188,33 +188,36 @@ def run_exercise():
     global number_of_reps
     global curr_angle
     global last_states
-    for i in range(0,number_of_reps):
-        update_curr_angle()
+
+    for i in range(number_of_reps):
+        print(f"Repetition {i + 1}/{number_of_reps} – Flexion")
+
         while True:
-            if len(last_states)<=5:
-                direction=-1
-            else:
-                direction(last_states)
-            
-            if direction!=0:
-                exercise_loop(curr_angle,direction)
+            update_curr_angle()  # Blocking read
+            time.sleep(0.01)
+
+            dir_val = direction(last_states) if len(last_states) > 5 else -1
+
+            if dir_val != 0:
+                est_angle = exercise_loop(curr_angle, dir_val)
+                print(f"→ Estimated Angle: {float(est_angle):.2f}")
             else:
                 break
-        
-        # sleeping time between the phase change
 
         time.sleep(0.8)
-        
-        last_states=[]
+        last_states = [curr_angle] * 5
+
+        print(f"Repetition {i + 1}/{number_of_reps} – Extension")
 
         while True:
-            if len(last_states)<=5:
-                direction=1
-            else:
-                direction(last_states)
-            
-            if direction!=0:
-                exercise_loop(curr_angle,direction)
+            update_curr_angle()
+            time.sleep(0.01)
+
+            dir_val = direction(last_states) if len(last_states) > 5 else 1
+
+            if dir_val != 0:
+                est_angle = exercise_loop(curr_angle, dir_val)
+                print(f"→ Estimated Angle: {float(est_angle):.2f}")
             else:
                 break
 

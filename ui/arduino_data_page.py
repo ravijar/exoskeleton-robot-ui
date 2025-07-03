@@ -1,6 +1,6 @@
 import tkinter as tk
 from ui.back_button_mixin import BackButtonMixin
-from service.high_level_controller import init_enc_value, get_curr_angle, update_curr_angle, set_number_of_reps, run_exercise
+import service.high_level_controller as hlc
 
 class ArduinoDataPage(tk.Frame, BackButtonMixin):
     def __init__(self, controller):
@@ -9,7 +9,7 @@ class ArduinoDataPage(tk.Frame, BackButtonMixin):
 
         tk.Label(self, text="Data Communication", font=("Arial", 16)).pack(pady=20)
 
-        self.curr_angle_label = tk.Label(self, text=f"Current Angle: {get_curr_angle():.2f}", font=("Arial", 12))
+        self.curr_angle_label = tk.Label(self, text=f"Current Angle: {hlc.get_curr_angle():.2f}", font=("Arial", 12))
         self.curr_angle_label.pack(pady=10)
 
         self.read_btn = tk.Button(self, text="Calculate Current Angle", command=self.update_ui)
@@ -20,20 +20,20 @@ class ArduinoDataPage(tk.Frame, BackButtonMixin):
             self,
             self.reps_var,
             *[1, 2, 4, 6, 8, 10, 12],
-            command=lambda val: set_number_of_reps(int(val))
+            command=lambda val: hlc.set_number_of_reps(int(val))
         )
         self.reps_dropdown.pack(pady=10)
 
-        self.run_btn = tk.Button(self, text="Run Exercise", command=run_exercise)
+        self.run_btn = tk.Button(self, text="Run Exercise", command=hlc.run_exercise)
         self.run_btn.pack(pady=10)
 
         self.add_back_button(self, controller)
 
     def on_show(self):
-        init_enc_value()
+        hlc.init_enc_value()
         
 
     def update_ui(self):
-        update_curr_angle(lambda angle: self.curr_angle_label.config(text=f"Current Angle: {angle:.2f}°"))
+        hlc.update_curr_angle(lambda angle: self.curr_angle_label.config(text=f"Current Angle: {angle:.2f}°"))
 
 
