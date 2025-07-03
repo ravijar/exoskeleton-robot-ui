@@ -64,3 +64,6 @@ def get_encoder_value(callback):
                 callback(None)
 
         read_response_async(handle_response, expected_prefix="ENCODER_VALUE")
+
+def set_encoder_value(value):
+    send_to_arduino(f"SET_ENCODER_VALUE:{value}")

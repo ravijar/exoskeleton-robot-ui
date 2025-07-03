@@ -19,6 +19,9 @@ void handleSerialCommand() {
       int enc = getEncoderValue();
       Serial.print("ENCODER_VALUE:");
       Serial.println(enc);
+    } else if (cmd.startsWith("SET_ENCODER_VALUE:")) {
+      String valStr = cmd.substring(cmd.indexOf(':') + 1);
+      Serial.println("ENCODER_VALUE_SET");
     } else {
       Serial.println("UNKNOWN_COMMAND");
     }
