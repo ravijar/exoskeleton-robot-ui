@@ -92,11 +92,15 @@ def perform_reps():
 
         # Flexion phase
         for i in range(start_index, len(curl_flextion)):
+            start_time = time.time()
             theta_val = curl_flextion.iloc[i, 1]
             curr_e_val = get_curr_e_val(theta_val)
             print(f"Flexion: Theta = {theta_val}, Encoder = {curr_e_val}")
-            set_encoder_value(curr_e_val)
-            time.sleep(0.05)
+            set_encoder_value(int(curr_e_val))
+            elapsed = time.time() - start_time
+            print("Elapsed Time: ",elapsed)
+            remaining = max(0.0, 0.05 - elapsed)
+            time.sleep(remaining)
 
         time.sleep(2)
 
@@ -104,10 +108,14 @@ def perform_reps():
 
         # Extension phase
         for i in range(len(curl_extension)):
+            start_time = time.time()
             theta_val = curl_extension.iloc[i, 1]
             curr_e_val = get_curr_e_val(theta_val)
             print(f"Extension: Theta = {theta_val}, Encoder = {curr_e_val}")
             set_encoder_value(curr_e_val)
-            time.sleep(0.05)
+            elapsed = time.time() - start_time
+            print("Elapsed Time: ",elapsed)
+            remaining = max(0.0, 0.05 - elapsed)
+            time.sleep(remaining)
 
         time.sleep(2)
